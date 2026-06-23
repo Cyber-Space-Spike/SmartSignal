@@ -1,0 +1,9 @@
+Copyright © 2026 Oscar. Todos os direitos reservados.
+
+Este código é fornecido apenas para fins de visualização e avaliação.
+Nenhuma permissão é concedida para copiar, modificar, distribuir, sublicenciar
+ou usar este software, total ou parcialmente, para qualquer finalidade,
+comercial ou não, sem autorização prévia e por escrito do autor.
+
+Este repositório está público apenas pela exigência técnica do GitHub Pages
+para hospedagem do protótipo de validação.

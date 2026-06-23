@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<title>SmartSignal — Protótipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a; --surface:#121212; --surface-2:#1c1c1c; --border:#262626;
+    --red:#ef4444; --amber:#facc15; --green:#22c55e;
+    --text:#fafafa; --muted:#8a8a8a; --faint:#5a5a5a;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+    --ui:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--text);font-family:var(--ui);overscroll-behavior:none}
+  body{min-height:100dvh;display:flex;flex-direction:column}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+  /* Top bar */
+  .topbar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:-0.02em}
+  .logo .dot{width:13px;height:13px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+  .topbar .spacer{flex:1}
+  .pill{font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted)}
+  .pill.live{color:var(--green);border-color:#1c3a26}
+  .pill.off{color:var(--faint)}
+
+  /* Tabs */
+  .tabs{display:flex;gap:4px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--surface);overflow-x:auto}
+  .tab{font-size:13px;font-weight:600;padding:8px 14px;border-radius:9px;color:var(--muted);white-space:nowrap;border:1px solid transparent}
+  .tab.active{background:var(--surface-2);color:var(--text);border-color:var(--border)}
+
+  main{flex:1;padding:16px;display:flex;flex-direction:column;gap:16px}
+
+  /* DRIVE VIEW: car + watch side by side */
+  .stage{display:grid;grid-template-columns:1fr;gap:18px;max-width:1100px;margin:0 auto;width:100%}
+  @media(min-width:880px){.stage{grid-template-columns:1.4fr 1fr;align-items:start}}
+
+  /* Car cluster */
+  .cluster{background:var(--surface);border:1px solid var(--border);border-radius:22px;overflow:hidden}
+  .banner{padding:22px 20px;text-align:center;transition:background .25s, color .25s;position:relative}
+  .banner .verb{font-size:34px;font-weight:800;letter-spacing:-0.01em;line-height:1}
+  .banner .sub{font-size:14px;font-weight:500;opacity:.85;margin-top:6px}
+  .banner.maintain{background:rgba(34,197,94,.12);color:var(--green)}
+  .banner.accel{background:rgba(250,204,21,.14);color:var(--amber)}
+  .banner.slow{background:rgba(239,68,68,.14);color:var(--red)}
+  .banner.idle{background:var(--surface-2);color:var(--muted)}
+  .banner .arrow{font-size:26px;display:block;margin-bottom:2px}
+
+  .speedo{padding:26px 20px 8px;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .speed-num{font-family:var(--mono);font-size:74px;font-weight:700;line-height:.9}
+  .speed-unit{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.08em}
+  .gauge{width:100%;max-width:340px;height:10px;background:var(--surface-2);border-radius:99px;position:relative;margin:14px 0 4px;overflow:hidden}
+  .gauge .ideal{position:absolute;top:0;bottom:0;background:rgba(34,197,94,.45);border-left:2px solid var(--green);border-right:2px solid var(--green)}
+  .gauge .needle{position:absolute;top:-3px;width:4px;height:16px;background:var(--text);border-radius:2px;transition:left .2s}
+  .gauge-labels{width:100%;max-width:340px;display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--mono)}
+
+  .metrics{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--border)}
+  .metric{padding:16px 12px;text-align:center;border-right:1px solid var(--border)}
+  .metric:last-child{border-right:none}
+  .metric .v{font-family:var(--mono);font-size:24px;font-weight:700}
+  .metric .l{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+
+  /* Traffic light glyph */
+  .tl{display:flex;flex-direction:column;gap:9px;align-items:center;padding:18px;background:#000;border-radius:18px;border:1px solid var(--border);width:fit-content;margin:0 auto}
+  .tl .lamp{width:42px;height:42px;border-radius:50%;background:#1a1a1a;transition:.2s}
+  .tl .lamp.r.on{background:var(--red);box-shadow:0 0 22px var(--red)}
+  .tl .lamp.a.on{background:var(--amber);box-shadow:0 0 22px var(--amber)}
+  .tl .lamp.g.on{background:var(--green);box-shadow:0 0 22px var(--green)}
+  .phase-count{font-family:var(--mono);font-size:13px;color:var(--muted);text-align:center;margin-top:10px}
+  .phase-count b{color:var(--text);font-size:18px}
+
+  /* Watch */
+  .watch-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .watch{width:240px;height:240px;border-radius:50%;background:#000;border:10px solid #1a1a1a;position:relative;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #000, 0 20px 50px rgba(0,0,0,.6)}
+  .watch svg{position:absolute;inset:0}
+  .watch .wcenter{display:flex;flex-direction:column;align-items:center;z-index:2}
+  .watch .wverb{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .watch .wspeed{font-family:var(--mono);font-size:52px;font-weight:700;line-height:.9}
+  .watch .wunit{font-size:10px;color:var(--muted);letter-spacing:.1em}
+  .watch .wdist{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:6px}
+
+  /* Cards / generic */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px}
+  .card h2{font-size:15px;font-weight:700;margin-bottom:4px}
+  .card p.note{font-size:13px;color:var(--muted);line-height:1.5}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{padding:12px 18px;border-radius:12px;font-weight:700;font-size:14px;background:var(--surface-2);border:1px solid var(--border);color:var(--text)}
+  .btn.primary{background:var(--green);color:#04220f;border-color:var(--green)}
+  .btn.danger{background:transparent;color:var(--red);border-color:#5c2b2e}
+  .btn:active{transform:scale(.97)}
+  .btn:disabled{opacity:.4}
+
+  .list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .sig{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px}
+  .sig .mini{width:10px;height:30px;border-radius:6px;background:linear-gradient(var(--red) 0 33%,var(--amber) 33% 66%,var(--green) 66% 100%);flex-shrink:0}
+  .sig .info{flex:1;min-width:0}
+  .sig .info .n{font-weight:600;font-size:14px}
+  .sig .info .c{font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .empty{text-align:center;color:var(--faint);font-size:13px;padding:24px 0}
+
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+  .field label{font-size:12px;color:var(--muted);font-weight:600}
+  .field input{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);font-family:var(--mono);font-size:15px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  .gpsbox{font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;line-height:1.6}
+  .gpsbox .hl{color:var(--green)}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:12px 18px;border-radius:12px;font-size:14px;font-weight:600;z-index:999;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1}
+  .safety{font-size:12px;color:var(--amber);background:rgba(250,204,21,.08);border:1px solid #3a3210;border-radius:10px;padding:11px 13px;line-height:1.5}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><span class="dot"></span>SmartSignal</div>
+  <div class="spacer"></div>
+  <div class="pill off" id="gpsPill">GPS desligado</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-view="drive">Direção</button>
+  <button class="tab" data-view="signals">Semáforos</button>
+  <button class="tab" data-view="trip">Viagem</button>
+  <button class="tab" data-view="about">Sobre</button>
+</div>
+
+<main>
+  <!-- ============ DRIVE ============ -->
+  <section id="view-drive">
+    <div class="safety" id="driveHint">Toque em <b>Iniciar GPS</b> e deixe o celular no suporte. Em movimento, não toque na tela — o app fala e mostra a orientação sozinho.</div>
+    <div class="row" style="justify-content:center;margin:12px 0 4px">
+      <button class="btn primary" id="startBtn">Iniciar GPS</button>
+      <button class="btn" id="simBtn">Modo demonstração</button>
+    </div>
+
+    <div class="stage">
+      <!-- CAR -->
+      <div class="cluster">
+        <div class="banner idle" id="banner">
+          <span class="arrow" id="bArrow">•</span>
+          <div class="verb" id="bVerb">Aguardando</div>
+          <div class="sub" id="bSub">Inicie o GPS para começar</div>
+        </div>
+        <div class="speedo">
+          <div class="speed-num mono" id="spNum">0</div>
+          <div class="speed-unit">KM/H</div>
+          <div class="gauge">
+            <div class="ideal" id="gIdeal" style="left:40%;width:20%"></div>
+            <div class="needle" id="gNeedle" style="left:0%"></div>
+          </div>
+          <div class="gauge-labels"><span>0</span><span id="gMax">80</span></div>
+        </div>
+        <div style="padding:6px 0 20px"><div class="tl">
+          <div class="lamp r" id="lr"></div>
+          <div class="lamp a" id="la"></div>
+          <div class="lamp g" id="lg"></div>
+        </div>
+        <div class="phase-count" id="phaseCount">sem semáforo à frente</div></div>
+        <div class="metrics">
+          <div class="metric"><div class="v mono" id="mDist">—</div><div class="l">Distância</div></div>
+          <div class="metric"><div class="v mono" id="mEta">—</div><div class="l">Chegada</div></div>
+          <div class="metric"><div class="v mono" id="mIdeal">—</div><div class="l">Ideal</div></div>
+        </div>
+      </div>
+
+      <!-- WATCH -->
+      <div class="watch-wrap">
+        <div class="watch">
+          <svg viewBox="0 0 240 240">
+            <circle cx="120" cy="120" r="110" fill="none" stroke="#1a1a1a" stroke-width="8"/>
+            <circle id="wRing" cx="120" cy="120" r="110" fill="none" stroke="#22c55e" stroke-width="8"
+                    stroke-linecap="round" stroke-dasharray="691" stroke-dashoffset="691"
+                    transform="rotate(-90 120 120)" style="transition:stroke-dashoffset .3s,stroke .25s"/>
+          </svg>
+          <div class="wcenter">
+            <div class="wverb" id="wVerb" style="color:var(--muted)">—</div>
+            <div class="wspeed mono" id="wSpeed">0</div>
+            <div class="wunit">KM/H</div>
+            <div class="wdist mono" id="wDist">aguardando</div>
+          </div>
+        </div>
+        <div class="pill">Espelho do relógio (Wear OS)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SIGNALS ============ -->
+  <section id="view-signals" class="hide">
+    <div class="card">
+      <h2>Cadastrar um semáforo</h2>
+      <p class="note">Pare perto do farol (ou use sua posição atual) e informe o ciclo. O app salva no seu aparelho e usa esses dados para te orientar quando você se aproximar.</p>
+      <div class="gpsbox" id="curPos" style="margin:14px 0">Posição atual: <span class="hl">aguardando GPS…</span></div>
+      <div class="field"><label>Nome / referência</label><input id="fName" placeholder="Ex.: Av. Paulista x R. Augusta"></div>
+      <div class="grid2">
+        <div class="field"><label>Tempo de VERDE (s)</label><input id="fGreen" class="mono" type="number" value="30" inputmode="numeric"></div>
+        <div class="field"><label>Tempo de VERMELHO (s)</label><input id="fRed" class="mono" type="number" value="40" inputmode="numeric"></div>
+      </div>
+      <div class="field"><label>Está VERDE agora? (sincroniza o ciclo)</label>
+        <div class="row"><button class="btn" id="syncGreen">Está verde</button><button class="btn" id="syncRed">Está vermelho</button></div>
+      </div>
+      <button class="btn primary" id="saveSig" style="width:100%">Salvar semáforo aqui</button>
+    </div>
+    <div class="card">
+      <h2>Meus semáforos</h2>
+      <div class="list" id="sigList"><div class="empty">Nenhum semáforo cadastrado ainda.</div></div>
+    </div>
+  </section>
+
+  <!-- ============ TRIP ============ -->
+  <section id="view-trip" class="hide">
+    <div class="card">
+      <h2>Resumo da sessão</h2>
+      <p class="note">Estimativas desta sessão de uso. Valores aproximados para validação.</p>
+      <div class="metrics" style="border:1px solid var(--border);border-radius:12px;margin-top:14px">
+        <div class="metric"><div class="v mono" id="tGreen">0</div><div class="l">Verdes pegos</div></div>
+        <div class="metric"><div class="v mono" id="tFuel">0,00</div><div class="l">Litros econ.</div></div>
+        <div class="metric"><div class="v mono" id="tStop">0s</div><div class="l">Tempo parado</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section id="view-about" class="hide">
+    <div class="card">
+      <h2>O que é este protótipo</h2>
+      <p class="note">Versão web de validação do SmartSignal. Roda no navegador do seu Android com GPS real, usando os semáforos que você cadastrar. Serve para testar a experiência de direção antes de virar app baixável.<br><br><b>Regra inviolável:</b> o app nunca controla o veículo — apenas sugere. Nunca sugere velocidade acima do limite.<br><br>Os dados ficam só no seu aparelho (armazenamento local). Nada é enviado para servidores.</p>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- estado ----------
+const S = {
+  watchId:null, sim:false, simTimer:null,
+  lat:null, lon:null, speed:0, // m/s
+  signals:[], limit:50, // km/h limite da via (validação)
+  trip:{green:0, fuel:0, stop:0},
+};
+const $=id=>document.getElementById(id);
+const KMH=ms=>ms*3.6;
+const store={
+  load(){try{S.signals=JSON.parse(localStorage.getItem('ss_signals')||'[]')}catch(e){S.signals=[]}},
+  save(){localStorage.setItem('ss_signals',JSON.stringify(S.signals))}
+};
+store.load();
+
+// ---------- navegação de abas ----------
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  ['drive','signals','trip','about'].forEach(v=>$('view-'+v).classList.add('hide'));
+  $('view-'+t.dataset.view).classList.remove('hide');
+  if(t.dataset.view==='signals') renderSignals();
+  if(t.dataset.view==='trip') renderTrip();
+});
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200)}
+
+// ---------- distância (haversine, metros) ----------
+function dist(aLat,aLon,bLat,bLon){
+  const R=6371000,r=Math.PI/180;
+  const dLat=(bLat-aLat)*r,dLon=(bLon-aLon)*r;
+  const x=Math.sin(dLat/2)**2+Math.cos(aLat*r)*Math.cos(bLat*r)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x));
+}
+
+// ---------- fase do semáforo no tempo t ----------
+function phaseAt(sig,now){
+  const cycle=sig.green+sig.red;
+  let pos=((now-sig.anchor)/1000)%cycle; if(pos<0)pos+=cycle;
+  // anchor marca o INÍCIO do verde
+  if(pos<sig.green) return {color:'green', remain:sig.green-pos};
+  return {color:'red', remain:cycle-pos};
+}
+
+// ---------- escolhe o semáforo relevante à frente ----------
+function nearestSignal(){
+  if(S.lat==null||!S.signals.length) return null;
+  let best=null,bd=1e12;
+  for(const s of S.signals){
+    const d=dist(S.lat,S.lon,s.lat,s.lon);
+    if(d<bd){bd=d;best=s}
+  }
+  if(!best||bd>600) return null; // só considera até 600m
+  return {sig:best, d:bd};
+}
+
+// ---------- lógica de orientação (computeGuidance) ----------
+function computeGuidance(){
+  const found=nearestSignal();
+  const now=Date.now();
+  const vkmh=KMH(S.speed);
+  if(!found){
+    return {state:'idle', verb:'Siga', sub:'Nenhum semáforo à frente', d:null, eta:null, ideal:null, color:null, remain:null};
+  }
+  const {sig,d}=found;
+  const ph=phaseAt(sig,now);
+  const v=Math.max(S.speed,0.1); // m/s, evita /0
+  const eta=d/v; // s até chegar mantendo velocidade
+  // velocidade (km/h) para chegar exatamente quando ABRIR o verde
+  let ideal=null, state, verb, sub, arrow;
+  if(ph.color==='green'){
+    const greenLeftAtArrival = ph.remain - eta;
+    if(eta<=ph.remain){
+      state='maintain'; verb='MANTENHA'; arrow='→';
+      sub='Você pega o verde — mantenha o ritmo'; ideal=vkmh;
+    }else{
+      // verde vai fechar antes de chegar: precisa acelerar (dentro do limite)
+      const need=KMH(d/Math.max(ph.remain,0.1));
+      if(need<=S.limit){ state='accel'; verb='ACELERE'; arrow='↑'; sub='Acelere com segurança para pegar o verde'; ideal=Math.min(need,S.limit); }
+      else { state='slow'; verb='NÃO ACELERA'; arrow='↓'; sub='Não dá pra pegar — chegue suave no próximo'; const next=d/(ph.remain+sig.red); ideal=Math.max(KMH(next),0); }
+    }
+  } else { // vermelho
+    // queremos chegar quando faltar ~0 para abrir
+    const tOpen=ph.remain; // s até abrir
+    const need=d/Math.max(tOpen,0.1); // m/s para chegar na abertura
+    state='slow'; verb='NÃO ACELERA'; arrow='↓';
+    sub='Farol fechado — alivie para chegar no verde';
+    ideal=Math.min(KMH(need),S.limit);
+  }
+  return {state,verb,sub,arrow,d,eta, ideal:Math.max(ideal,0), color:ph.color, remain:ph.remain, vkmh};
+}
+
+// ---------- render ----------
+let lastState=null;
+function render(){
+  const g=computeGuidance();
+  const vkmh=KMH(S.speed);
+  // velocímetro
+  $('spNum').textContent=Math.round(vkmh);
+  $('wSpeed').textContent=Math.round(vkmh);
+  const max=Math.max(S.limit,vkmh,1);
+  $('gMax').textContent=Math.round(max);
+  $('gNeedle').style.left=Math.min(vkmh/max*100,100)+'%';
+
+  // banner
+  const banner=$('banner');
+  banner.className='banner '+(g.state==='idle'?'idle':g.state);
+  $('bVerb').textContent=g.verb;
+  $('bSub').textContent=g.sub;
+  $('bArrow').textContent=g.arrow||'•';
+
+  // faixa ideal no gauge
+  if(g.ideal!=null){
+    const c=g.ideal/max*100, w=6;
+    $('gIdeal').style.left=Math.max(c-w/2,0)+'%';
+    $('gIdeal').style.width=w+'%';
+    $('gIdeal').style.display='block';
+    $('mIdeal').textContent=Math.round(g.ideal);
+  } else { $('gIdeal').style.display='none'; $('mIdeal').textContent='—'; }
+
+  // métricas
+  $('mDist').textContent = g.d==null?'—':(g.d<1000?Math.round(g.d)+'m':(g.d/1000).toFixed(1)+'km');
+  $('mEta').textContent = g.eta==null?'—':Math.round(g.eta)+'s';
+
+  // farol
+  $('lr').className='lamp r'+(g.color==='red'?' on':'');
+  $('la').className='lamp a';
+  $('lg').className='lamp g'+(g.color==='green'?' on':'');
+  $('phaseCount').innerHTML = g.color==null?'sem semáforo à frente'
+    : (g.color==='green'?'verde fecha em <b>'+Math.ceil(g.remain)+'s</b>':'abre em <b>'+Math.ceil(g.remain)+'s</b>');
+
+  // watch
+  const wv=$('wVerb'); wv.textContent=g.verb;
+  const col = g.state==='maintain'?'var(--green)':g.state==='accel'?'var(--amber)':g.state==='slow'?'var(--red)':'var(--muted)';
+  wv.style.color=col;
+  $('wRing').setAttribute('stroke', g.color==='red'?'var(--red)':g.color==='green'?'var(--green)':'#333');
+  const frac = g.remain!=null && g.color ? (g.color==='green'? g.remain/ (findCycle(g)) : g.remain/ findCycle(g)) : 0;
+  $('wRing').style.strokeDashoffset = 691*(1-Math.min(Math.max(frac,0),1));
+  $('wDist').textContent = g.d==null?'sem farol':(g.d<1000?Math.round(g.d)+'m · '+Math.ceil(g.remain||0)+'s':(g.d/1000).toFixed(1)+'km');
+
+  // alerta sonoro/vibração na MUDANÇA de estado
+  if(g.state!==lastState && g.state!=='idle'){
+    feedback(g.state);
+    lastState=g.state;
+  }
+  // viagem
+  $('tGreen').textContent=S.trip.green;
+  $('tFuel').textContent=S.trip.fuel.toFixed(2).replace('.',',');
+  $('tStop').textContent=Math.round(S.trip.stop)+'s';
+}
+function findCycle(g){const f=nearestSignal();return f?f.sig.green+f.sig.red:60}
+
+// ---------- feedback háptico/sonoro ----------
+let audioCtx=null;
+function feedback(state){
+  if(navigator.vibrate){ navigator.vibrate(state==='slow'?[80,40,80]:60); }
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(),gn=audioCtx.createGain();
+    o.connect(gn);gn.connect(audioCtx.destination);
+    o.frequency.value = state==='accel'?880:state==='slow'?330:560;
+    gn.gain.setValueAtTime(0.0001,audioCtx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.15,audioCtx.currentTime+0.02);
+    gn.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.25);
+    o.start();o.stop(audioCtx.currentTime+0.26);
+  }catch(e){}
+}
+
+// ---------- GPS ----------
+function startGPS(){
+  if(!navigator.geolocation){toast('Sem suporte a GPS neste navegador');return}
+  if(S.watchId!=null){toast('GPS já ativo');return}
+  $('gpsPill').textContent='GPS conectando…';
+  S.watchId=navigator.geolocation.watchPosition(pos=>{
+    S.lat=pos.coords.latitude; S.lon=pos.coords.longitude;
+    S.speed = pos.coords.speed!=null && !isNaN(pos.coords.speed) ? pos.coords.speed : S.speed;
+    $('gpsPill').textContent='GPS ativo'; $('gpsPill').className='pill live';
+    $('curPos').innerHTML='Posição atual: <span class="hl">'+S.lat.toFixed(5)+', '+S.lon.toFixed(5)+'</span>';
+  },err=>{
+    $('gpsPill').textContent='GPS negado'; $('gpsPill').className='pill off';
+    toast('Permita o acesso à localização');
+  },{enableHighAccuracy:true,maximumAge:1000,timeout:10000});
+  toast('GPS iniciado');
+}
+$('startBtn').onclick=()=>{ if(audioCtx==null){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}} startGPS(); };
+
+// ---------- modo demonstração ----------
+$('simBtn').onclick=()=>{
+  S.sim=!S.sim;
+  $('simBtn').textContent=S.sim?'Parar demonstração':'Modo demonstração';
+  if(S.sim){
+    // cria um farol fictício 400m ao norte da posição (ou cria base se sem GPS)
+    if(S.lat==null){S.lat=-23.561;S.lon=-46.656;} // SP fallback
+    const demo={id:'demo',name:'Farol demonstração',green:25,red:35,
+      anchor:Date.now(), lat:S.lat+0.0036, lon:S.lon};
+    S.signals=S.signals.filter(s=>s.id!=='demo'); S.signals.push(demo);
+    let approach=400; // metros, vai diminuindo
+    S.speed=11; // ~40km/h
+    $('gpsPill').textContent='Demonstração'; $('gpsPill').className='pill';
+    S.simTimer=setInterval(()=>{
+      approach-=S.speed*0.2;
+      if(approach<0)approach=400;
+      // recoloca farol "approach" metros ao norte
+      demo.lat=S.lat+approach/111320;
+      // varia velocidade levemente
+      S.speed=Math.max(3,S.speed+(Math.random()-0.5)*1.2);
+    },200);
+  }else{
+    clearInterval(S.simTimer);
+    S.signals=S.signals.filter(s=>s.id!=='demo');
+    $('gpsPill').textContent=S.watchId?'GPS ativo':'GPS desligado';
+    $('gpsPill').className='pill '+(S.watchId?'live':'off');
+  }
+};
+
+// ---------- cadastro de semáforos ----------
+let pendingSync=null; // {color, t}
+$('syncGreen').onclick=()=>{pendingSync={color:'green'};toast('Marcado: está verde agora')};
+$('syncRed').onclick=()=>{pendingSync={color:'red'};toast('Marcado: está vermelho agora')};
+$('saveSig').onclick=()=>{
+  if(S.lat==null){toast('Inicie o GPS primeiro');return}
+  const green=Math.max(parseInt($('fGreen').value)||0,1);
+  const red=Math.max(parseInt($('fRed').value)||0,1);
+  const name=$('fName').value.trim()||('Semáforo '+(S.signals.length+1));
+  let anchor=Date.now();
+  // anchor = início do verde. se marcou vermelho agora, recua para alinhar.
+  if(pendingSync&&pendingSync.color==='red'){ anchor=Date.now()-green*1000; }
+  S.signals.push({id:'s'+Date.now(),name,green,red,anchor,lat:S.lat,lon:S.lon});
+  store.save(); pendingSync=null; $('fName').value='';
+  renderSignals(); toast('Semáforo salvo ('+S.signals.length+')');
+};
+function renderSignals(){
+  const el=$('sigList');
+  const real=S.signals.filter(s=>s.id!=='demo');
+  if(!real.length){el.innerHTML='<div class="empty">Nenhum semáforo cadastrado ainda.</div>';return}
+  el.innerHTML='';
+  real.forEach(s=>{
+    const d=S.lat!=null?Math.round(dist(S.lat,S.lon,s.lat,s.lon))+'m':'—';
+    const row=document.createElement('div');row.className='sig';
+    row.innerHTML='<div class="mini"></div><div class="info"><div class="n"></div><div class="c"></div></div><button class="btn danger">Excluir</button>';
+    row.querySelector('.n').textContent=s.name;
+    row.querySelector('.c').textContent='V '+s.green+'s · R '+s.red+'s · '+d;
+    row.querySelector('button').onclick=()=>{S.signals=S.signals.filter(x=>x.id!==s.id);store.save();renderSignals();toast('Excluído')};
+    el.appendChild(row);
+  });
+}
+function renderTrip(){/* valores atualizados no loop */}
+
+// ---------- loop principal (~5x/s) ----------
+let prevT=Date.now();
+setInterval(()=>{
+  const now=Date.now(),dt=(now-prevT)/1000;prevT=now;
+  // métricas simples de viagem
+  const g=computeGuidance();
+  if(KMH(S.speed)<2) S.trip.stop+=dt;
+  // economia fictícia proporcional ao tempo "mantendo"
+  if(g.state==='maintain') S.trip.fuel+=dt*0.0009;
+  render();
+},200);
+
+// conta "verde pego": quando estava perto e farol verde e distância ~0
+let wasClose=false;
+setInterval(()=>{
+  const f=nearestSignal();
+  if(f&&f.d<25){
+    const ph=phaseAt(f.sig,Date.now());
+    if(ph.color==='green'&&!wasClose){S.trip.green++;wasClose=true}
+  }else wasClose=false;
+},500);
+
+render();
+</script>
+</body>
+</html>
