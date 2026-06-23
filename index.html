@@ -96,6 +96,9 @@
   .btn.danger{background:transparent;color:var(--red);border-color:#5c2b2e}
   .btn:active{transform:scale(.97)}
   .btn:disabled{opacity:.4}
+  .btn.sel-green{background:var(--green);color:#04220f;border-color:var(--green);font-weight:800}
+  .btn.sel-red{background:var(--red);color:#2a0a0a;border-color:var(--red);font-weight:800}
+  .btn.dim{opacity:.45}
 
   .list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
   .sig{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px}
@@ -124,6 +127,7 @@
 <div class="topbar">
   <div class="logo"><span class="dot"></span>SmartSignal</div>
   <div class="spacer"></div>
+  <div class="pill" id="clock" style="font-family:var(--mono)">--:--:--</div>
   <div class="pill off" id="gpsPill">GPS desligado</div>
 </div>
 
@@ -232,8 +236,49 @@
   <!-- ============ ABOUT ============ -->
   <section id="view-about" class="hide">
     <div class="card">
-      <h2>O que é este protótipo</h2>
-      <p class="note">Versão web de validação do SmartSignal. Roda no navegador do seu Android com GPS real, usando os semáforos que você cadastrar. Serve para testar a experiência de direção antes de virar app baixável.<br><br><b>Regra inviolável:</b> o app nunca controla o veículo — apenas sugere. Nunca sugere velocidade acima do limite.<br><br>Os dados ficam só no seu aparelho (armazenamento local). Nada é enviado para servidores.</p>
+      <h2>O que é o SmartSignal</h2>
+      <p class="note">Um assistente de direção que te diz o <b>ritmo ideal de velocidade</b> para chegar ao próximo semáforo bem na hora em que ele abre — assim você evita acelerar à toa só para frear no vermelho. Resultado: menos combustível, menos desgaste do veículo e menos tempo parado no farol.</p>
+    </div>
+
+    <div class="card">
+      <h2>Como usar, passo a passo</h2>
+      <p class="note" style="margin-bottom:14px"><b>1. Cadastre seus semáforos</b> — na aba <b>Semáforos</b>, pare perto de um farol da sua rota, informe quantos segundos ele fica verde e vermelho, toque em "Está verde/vermelho agora" para sincronizar e salve. Ele fica guardado no seu celular.</p>
+      <p class="note" style="margin-bottom:14px"><b>2. Dirija</b> — na aba <b>Direção</b>, toque em "Iniciar GPS", coloque o celular no suporte e siga viagem. Não precisa tocar em mais nada.</p>
+      <p class="note"><b>3. Siga a orientação</b> — o painel mostra uma das três mensagens, e o relógio espelha a mesma cor.</p>
+    </div>
+
+    <div class="card">
+      <h2>O que cada aviso significa</h2>
+      <div class="list" style="margin-top:8px">
+        <div class="sig" style="border-color:#1c3a26">
+          <div style="width:10px;height:30px;border-radius:6px;background:var(--green);flex-shrink:0"></div>
+          <div class="info"><div class="n" style="color:var(--green)">MANTENHA</div><div class="c" style="font-family:var(--ui);color:var(--muted)">Você pega o verde no ritmo atual. Siga assim.</div></div>
+        </div>
+        <div class="sig" style="border-color:#3a3210">
+          <div style="width:10px;height:30px;border-radius:6px;background:var(--amber);flex-shrink:0"></div>
+          <div class="info"><div class="n" style="color:var(--amber)">ACELERE</div><div class="c" style="font-family:var(--ui);color:var(--muted)">Dá para pegar o verde se acelerar um pouco — sempre dentro do limite da via.</div></div>
+        </div>
+        <div class="sig" style="border-color:#5c2b2e">
+          <div style="width:10px;height:30px;border-radius:6px;background:var(--red);flex-shrink:0"></div>
+          <div class="info"><div class="n" style="color:var(--red)">NÃO ACELERA</div><div class="c" style="font-family:var(--ui);color:var(--muted)">Não vai dar para pegar este verde. Alivie o pé para chegar suave quando reabrir.</div></div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px">A <b>faixa verde no velocímetro</b> mostra a velocidade-alvo. Mantenha o ponteiro dentro dela. Quando o aviso muda, o app dá um <b>bipe</b> e uma <b>vibração</b> — você não precisa olhar a tela o tempo todo.</p>
+    </div>
+
+    <div class="card">
+      <h2>Como ele calcula</h2>
+      <p class="note">Cinco vezes por segundo, o app mede a <b>distância</b> até o farol mais próximo da sua rota (até 600m), descobre em que <b>fase do ciclo</b> ele está (verde ou vermelho) e quanto falta para trocar, e compara com o <b>tempo que você levaria</b> para chegar na velocidade atual. Daí decide se você deve manter, acelerar ou aliviar. Tudo é feito dentro do próprio celular.</p>
+    </div>
+
+    <div class="card">
+      <h2>O que esta versão ainda NÃO faz</h2>
+      <p class="note">Esta é uma versão de <b>validação</b>, feita para testar a ideia na prática. Por isso:<br><br>• Os semáforos são os que <b>você</b> cadastra manualmente — ainda não há dados oficiais das prefeituras.<br>• O app escolhe o farol pela <b>distância</b>, sem distinguir o sentido da via — faróis muito próximos podem se confundir.<br>• Os números de <b>economia de combustível</b> na aba Viagem são estimativas grosseiras, só para dar a sensação da tela.<br>• O ciclo real do farol pode mudar por horário — use o botão de <b>recalibrar</b> se notar que desviou.</p>
+    </div>
+
+    <div class="card">
+      <h2>Seus dados e segurança</h2>
+      <p class="note"><b>Regra inviolável:</b> o app nunca controla o veículo — apenas sugere. E nunca sugere velocidade acima do limite.<br><br>Os semáforos que você cadastra ficam <b>só no seu aparelho</b> (armazenamento local do navegador). Nada é enviado para nenhum servidor.</p>
     </div>
   </section>
 </main>
@@ -458,8 +503,14 @@ $('simBtn').onclick=()=>{
 
 // ---------- cadastro de semáforos ----------
 let pendingSync=null; // {color, t}
-$('syncGreen').onclick=()=>{pendingSync={color:'green'};toast('Marcado: está verde agora')};
-$('syncRed').onclick=()=>{pendingSync={color:'red'};toast('Marcado: está vermelho agora')};
+function paintSync(color){
+  const g=$('syncGreen'), r=$('syncRed');
+  g.className='btn'; r.className='btn';
+  if(color==='green'){ g.classList.add('sel-green'); r.classList.add('dim'); }
+  else if(color==='red'){ r.classList.add('sel-red'); g.classList.add('dim'); }
+}
+$('syncGreen').onclick=()=>{pendingSync={color:'green'};paintSync('green')};
+$('syncRed').onclick=()=>{pendingSync={color:'red'};paintSync('red')};
 $('saveSig').onclick=()=>{
   if(S.lat==null){toast('Inicie o GPS primeiro');return}
   const green=Math.max(parseInt($('fGreen').value)||0,1);
@@ -468,10 +519,35 @@ $('saveSig').onclick=()=>{
   let anchor=Date.now();
   // anchor = início do verde. se marcou vermelho agora, recua para alinhar.
   if(pendingSync&&pendingSync.color==='red'){ anchor=Date.now()-green*1000; }
-  S.signals.push({id:'s'+Date.now(),name,green,red,anchor,lat:S.lat,lon:S.lon});
-  store.save(); pendingSync=null; $('fName').value='';
+  S.signals.push({id:'s'+Date.now(),name,green,red,anchor,lat:S.lat,lon:S.lon,createdAt:Date.now(),calibratedAt:Date.now()});
+  store.save(); pendingSync=null; $('fName').value=''; paintSync(null);
   renderSignals(); toast('Semáforo salvo ('+S.signals.length+')');
 };
+function timeAgo(ts){
+  if(!ts) return 'nunca calibrado';
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60) return 'há '+s+'s';
+  if(s<3600) return 'há '+Math.floor(s/60)+'min';
+  if(s<86400) return 'há '+Math.floor(s/3600)+'h';
+  return 'há '+Math.floor(s/86400)+'d';
+}
+function fmtDateTime(ts){
+  if(!ts) return '—';
+  const d=new Date(ts);
+  const p=n=>String(n).padStart(2,'0');
+  return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' às '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+}
+function recalibrate(id,color){
+  const s=S.signals.find(x=>x.id===id); if(!s) return;
+  // anchor = instante em que o verde começa. Recalculamos a partir do agora:
+  if(color==='green'){
+    s.anchor = Date.now(); // verde está começando agora
+  } else {
+    s.anchor = Date.now() - s.green*1000; // vermelho agora => verde "começou" há green segundos (já passou), próximo verde vem após o vermelho
+  }
+  s.calibratedAt = Date.now();
+  store.save(); renderSignals(); toast('Recalibrado: '+s.name);
+}
 function renderSignals(){
   const el=$('sigList');
   const real=S.signals.filter(s=>s.id!=='demo');
@@ -479,15 +555,35 @@ function renderSignals(){
   el.innerHTML='';
   real.forEach(s=>{
     const d=S.lat!=null?Math.round(dist(S.lat,S.lon,s.lat,s.lon))+'m':'—';
-    const row=document.createElement('div');row.className='sig';
-    row.innerHTML='<div class="mini"></div><div class="info"><div class="n"></div><div class="c"></div></div><button class="btn danger">Excluir</button>';
+    const row=document.createElement('div');row.className='sig';row.style.flexDirection='column';row.style.gap='10px';
+    row.innerHTML=
+      '<div style="display:flex;align-items:center;gap:12px;width:100%">'+
+        '<div class="mini"></div>'+
+        '<div class="info"><div class="n"></div><div class="c"></div><div class="saved" style="font-size:11px;color:var(--faint);margin-top:3px"></div><div class="cal" style="font-size:11px;color:var(--faint);margin-top:1px"></div></div>'+
+        '<button class="btn danger del">Excluir</button>'+
+      '</div>'+
+      '<div class="row" style="width:100%">'+
+        '<button class="btn recal-g" style="flex:1;font-size:13px;padding:9px">🟢 Verde agora</button>'+
+        '<button class="btn recal-r" style="flex:1;font-size:13px;padding:9px">🔴 Vermelho agora</button>'+
+      '</div>';
     row.querySelector('.n').textContent=s.name;
     row.querySelector('.c').textContent='V '+s.green+'s · R '+s.red+'s · '+d;
-    row.querySelector('button').onclick=()=>{S.signals=S.signals.filter(x=>x.id!==s.id);store.save();renderSignals();toast('Excluído')};
+    row.querySelector('.saved').textContent='Salvo em '+fmtDateTime(s.createdAt);
+    row.querySelector('.cal').textContent='Recalibrado '+timeAgo(s.calibratedAt)+' ('+fmtDateTime(s.calibratedAt)+')';
+    row.querySelector('.del').onclick=()=>{S.signals=S.signals.filter(x=>x.id!==s.id);store.save();renderSignals();toast('Excluído')};
+    row.querySelector('.recal-g').onclick=()=>recalibrate(s.id,'green');
+    row.querySelector('.recal-r').onclick=()=>recalibrate(s.id,'red');
     el.appendChild(row);
   });
 }
 function renderTrip(){/* valores atualizados no loop */}
+
+// ---------- relógio ao vivo ----------
+function tickClock(){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  $('clock').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+}
+setInterval(tickClock,1000); tickClock();
 
 // ---------- loop principal (~5x/s) ----------
 let prevT=Date.now();
