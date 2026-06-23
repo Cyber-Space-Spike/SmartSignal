@@ -13,9 +13,9 @@ Depois de validada, migra para app baixável (React Native + Expo).
 
 ## Como usar no celular
 
-1. Suba este repositório no GitHub e ative o **GitHub Pages** (Settings → Pages →
+1. No GitHub e ative o **GitHub Pages** (Settings → Pages →
    Branch `main` / root). O GPS só funciona em **HTTPS**, e o Pages serve nisso.
-2. Abra o link `https://SEU-USUARIO.github.io/smartsignal/` no **Chrome do Android**.
+2. Abra o link `https://Cyber-Space-Spike.github.io/smartsignal/` no **Chrome do Android**.
 3. Aba **Semáforos**: pare perto de um farol, informe os tempos de verde/vermelho,
    marque a cor atual e toque em **Salvar semáforo aqui**.
 4. Aba **Direção**: toque em **Iniciar GPS**, coloque o celular no suporte e dirija.
